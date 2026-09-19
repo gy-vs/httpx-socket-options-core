@@ -1106,6 +1106,24 @@ Connection retries are also available via this interface. Requests will be retri
 >>> client = httpx.Client(transport=transport)
 ```
 
+You can configure low-level socket options, such as TCP keepalive, by passing
+an iterable of `(socket_level, option_name, value)` tuples. The options are
+passed to `httpcore` without interpretation or validation, in the given order.
+The default value is `None`, which leaves `httpcore`'s default behavior in
+place.
+
+```python
+import socket
+import httpx
+
+socket_options = [
+    (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
+    (socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60),
+]
+transport = httpx.HTTPTransport(socket_options=socket_options)
+client = httpx.Client(transport=transport)
+```
+
 Similarly, instantiating a transport directly provides a `uds` option for
 connecting via a Unix Domain Socket that is only available via this low-level API:
 

@@ -77,6 +77,7 @@ TimeoutTypes = Union[
     Tuple[Optional[float], Optional[float], Optional[float], Optional[float]],
     "Timeout",
 ]
+SocketOption = Tuple[int, int, Union[int, bytes, bytearray]]
 ProxiesTypes = Union[URLTypes, "Proxy", Dict[URLTypes, Union[None, URLTypes, "Proxy"]]]
 
 AuthTypes = Union[

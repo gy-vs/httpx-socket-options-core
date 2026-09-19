@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Added
+
+* Add `socket_options` argument to `HTTPTransport` and `AsyncHTTPTransport`, including direct, HTTP tunnel proxy, and SOCKS proxy pools.
+
 ### Fixed
 
 * Return `500` error response instead of exceptions when `raise_app_exceptions=False` is set on `ASGITransport`. (#2669)

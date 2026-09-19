@@ -6,6 +6,7 @@ The following additional keyword arguments are currently supported by httpcore..
 * uds: str
 * local_address: str
 * retries: int
+* socket_options: typing.Iterable[SocketOption]
 
 Example usages...
 
@@ -47,7 +48,13 @@ from .._exceptions import (
     WriteTimeout,
 )
 from .._models import Request, Response
-from .._types import AsyncByteStream, CertTypes, SyncByteStream, VerifyTypes
+from .._types import (
+    AsyncByteStream,
+    CertTypes,
+    SocketOption,
+    SyncByteStream,
+    VerifyTypes,
+)
 from .base import AsyncBaseTransport, BaseTransport
 
 T = typing.TypeVar("T", bound="HTTPTransport")
@@ -122,6 +129,7 @@ class HTTPTransport(BaseTransport):
         uds: typing.Optional[str] = None,
         local_address: typing.Optional[str] = None,
         retries: int = 0,
+        socket_options: typing.Optional[typing.Iterable[SocketOption]] = None,
     ) -> None:
         ssl_context = create_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
 
@@ -136,6 +144,7 @@ class HTTPTransport(BaseTransport):
                 uds=uds,
                 local_address=local_address,
                 retries=retries,
+                socket_options=socket_options,
             )
         elif proxy.url.scheme in ("http", "https"):
             self._pool = httpcore.HTTPProxy(
@@ -153,6 +162,7 @@ class HTTPTransport(BaseTransport):
                 keepalive_expiry=limits.keepalive_expiry,
                 http1=http1,
                 http2=http2,
+                socket_options=socket_options,
             )
         elif proxy.url.scheme == "socks5":
             try:
@@ -177,6 +187,7 @@ class HTTPTransport(BaseTransport):
                 keepalive_expiry=limits.keepalive_expiry,
                 http1=http1,
                 http2=http2,
+                socket_options=socket_options,
             )
         else:  # pragma: no cover
             raise ValueError(
@@ -257,6 +268,7 @@ class AsyncHTTPTransport(AsyncBaseTransport):
         uds: typing.Optional[str] = None,
         local_address: typing.Optional[str] = None,
         retries: int = 0,
+        socket_options: typing.Optional[typing.Iterable[SocketOption]] = None,
     ) -> None:
         ssl_context = create_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
 
@@ -271,6 +283,7 @@ class AsyncHTTPTransport(AsyncBaseTransport):
                 uds=uds,
                 local_address=local_address,
                 retries=retries,
+                socket_options=socket_options,
             )
         elif proxy.url.scheme in ("http", "https"):
             self._pool = httpcore.AsyncHTTPProxy(
@@ -288,6 +301,7 @@ class AsyncHTTPTransport(AsyncBaseTransport):
                 keepalive_expiry=limits.keepalive_expiry,
                 http1=http1,
                 http2=http2,
+                socket_options=socket_options,
             )
         elif proxy.url.scheme == "socks5":
             try:
@@ -312,6 +326,7 @@ class AsyncHTTPTransport(AsyncBaseTransport):
                 keepalive_expiry=limits.keepalive_expiry,
                 http1=http1,
                 http2=http2,
+                socket_options=socket_options,
             )
         else:  # pragma: no cover
             raise ValueError(
