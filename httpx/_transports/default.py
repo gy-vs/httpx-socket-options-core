@@ -53,6 +53,12 @@ from .base import AsyncBaseTransport, BaseTransport
 T = typing.TypeVar("T", bound="HTTPTransport")
 A = typing.TypeVar("A", bound="AsyncHTTPTransport")
 
+SOCKET_OPTION = typing.Union[
+    typing.Tuple[int, int, int],
+    typing.Tuple[int, int, typing.Union[bytes, bytearray]],
+    typing.Tuple[int, int, None, int],
+]
+
 
 @contextlib.contextmanager
 def map_httpcore_exceptions() -> typing.Iterator[None]:
@@ -122,6 +128,7 @@ class HTTPTransport(BaseTransport):
         uds: typing.Optional[str] = None,
         local_address: typing.Optional[str] = None,
         retries: int = 0,
+        socket_options: typing.Optional[typing.Iterable[SOCKET_OPTION]] = None,
     ) -> None:
         ssl_context = create_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
 
@@ -136,6 +143,7 @@ class HTTPTransport(BaseTransport):
                 uds=uds,
                 local_address=local_address,
                 retries=retries,
+                socket_options=socket_options,
             )
         elif proxy.url.scheme in ("http", "https"):
             self._pool = httpcore.HTTPProxy(
@@ -153,6 +161,7 @@ class HTTPTransport(BaseTransport):
                 keepalive_expiry=limits.keepalive_expiry,
                 http1=http1,
                 http2=http2,
+                socket_options=socket_options,
             )
         elif proxy.url.scheme == "socks5":
             try:
@@ -163,6 +172,12 @@ class HTTPTransport(BaseTransport):
                     "Make sure to install httpx using `pip install httpx[socks]`."
                 ) from None
 
+            # The `socket_options` argument is not yet supported by
+            # `httpcore.SOCKSProxy`, so it is only included when explicitly
+            # configured, leaving the default behaviour unchanged otherwise.
+            socks_proxy_kwargs: typing.Dict[str, typing.Any] = (
+                {} if socket_options is None else {"socket_options": socket_options}
+            )
             self._pool = httpcore.SOCKSProxy(
                 proxy_url=httpcore.URL(
                     scheme=proxy.url.raw_scheme,
@@ -177,6 +192,7 @@ class HTTPTransport(BaseTransport):
                 keepalive_expiry=limits.keepalive_expiry,
                 http1=http1,
                 http2=http2,
+                **socks_proxy_kwargs,
             )
         else:  # pragma: no cover
             raise ValueError(
@@ -257,6 +273,7 @@ class AsyncHTTPTransport(AsyncBaseTransport):
         uds: typing.Optional[str] = None,
         local_address: typing.Optional[str] = None,
         retries: int = 0,
+        socket_options: typing.Optional[typing.Iterable[SOCKET_OPTION]] = None,
     ) -> None:
         ssl_context = create_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
 
@@ -271,6 +288,7 @@ class AsyncHTTPTransport(AsyncBaseTransport):
                 uds=uds,
                 local_address=local_address,
                 retries=retries,
+                socket_options=socket_options,
             )
         elif proxy.url.scheme in ("http", "https"):
             self._pool = httpcore.AsyncHTTPProxy(
@@ -288,6 +306,7 @@ class AsyncHTTPTransport(AsyncBaseTransport):
                 keepalive_expiry=limits.keepalive_expiry,
                 http1=http1,
                 http2=http2,
+                socket_options=socket_options,
             )
         elif proxy.url.scheme == "socks5":
             try:
@@ -298,6 +317,13 @@ class AsyncHTTPTransport(AsyncBaseTransport):
                     "Make sure to install httpx using `pip install httpx[socks]`."
                 ) from None
 
+            # The `socket_options` argument is not yet supported by
+            # `httpcore.AsyncSOCKSProxy`, so it is only included when
+            # explicitly configured, leaving the default behaviour
+            # unchanged otherwise.
+            socks_proxy_kwargs: typing.Dict[str, typing.Any] = (
+                {} if socket_options is None else {"socket_options": socket_options}
+            )
             self._pool = httpcore.AsyncSOCKSProxy(
                 proxy_url=httpcore.URL(
                     scheme=proxy.url.raw_scheme,
@@ -312,6 +338,7 @@ class AsyncHTTPTransport(AsyncBaseTransport):
                 keepalive_expiry=limits.keepalive_expiry,
                 http1=http1,
                 http2=http2,
+                **socks_proxy_kwargs,
             )
         else:  # pragma: no cover
             raise ValueError(

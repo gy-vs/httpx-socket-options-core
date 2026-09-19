@@ -1119,6 +1119,26 @@ connecting via a Unix Domain Socket that is only available via this low-level AP
 {"ID": "...", "Containers": 4, "Images": 74, ...}
 ```
 
+The `HTTPTransport` and `AsyncHTTPTransport` classes also accept a `socket_options`
+argument, which allows low-level socket options to be passed to the underlying
+connections. It should be an iterable of `(socket_level, option_name, value)`
+3-tuples, as used by [`socket.setsockopt()`](https://docs.python.org/3/library/socket.html#socket.socket.setsockopt).
+The options are passed through to the connections unmodified, and are not
+interpreted or validated by HTTPX. One example usage is enabling TCP keepalive
+and tuning its behaviour:
+
+```pycon
+>>> import socket
+>>> import httpx
+>>> socket_options = [
+...     (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
+...     (socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60),
+...     (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 30),
+... ]
+>>> transport = httpx.HTTPTransport(socket_options=socket_options)
+>>> client = httpx.Client(transport=transport)
+```
+
 ### urllib3 transport
 
 This [public gist](https://gist.github.com/florimondmanca/d56764d78d748eb9f73165da388e546e) provides a transport that uses the excellent [`urllib3` library](https://urllib3.readthedocs.io/en/latest/), and can be used with the sync `Client`...
